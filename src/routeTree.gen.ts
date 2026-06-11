@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SanctumRouteImport } from './routes/sanctum'
 import { Route as PantheonRouteImport } from './routes/pantheon'
+import { Route as ChoirRouteImport } from './routes/choir'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SanctumRoute = SanctumRouteImport.update({
@@ -23,6 +24,11 @@ const PantheonRoute = PantheonRouteImport.update({
   path: '/pantheon',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChoirRoute = ChoirRouteImport.update({
+  id: '/choir',
+  path: '/choir',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/choir': typeof ChoirRoute
   '/pantheon': typeof PantheonRoute
   '/sanctum': typeof SanctumRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/choir': typeof ChoirRoute
   '/pantheon': typeof PantheonRoute
   '/sanctum': typeof SanctumRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/choir': typeof ChoirRoute
   '/pantheon': typeof PantheonRoute
   '/sanctum': typeof SanctumRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pantheon' | '/sanctum'
+  fullPaths: '/' | '/choir' | '/pantheon' | '/sanctum'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pantheon' | '/sanctum'
-  id: '__root__' | '/' | '/pantheon' | '/sanctum'
+  to: '/' | '/choir' | '/pantheon' | '/sanctum'
+  id: '__root__' | '/' | '/choir' | '/pantheon' | '/sanctum'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChoirRoute: typeof ChoirRoute
   PantheonRoute: typeof PantheonRoute
   SanctumRoute: typeof SanctumRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PantheonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/choir': {
+      id: '/choir'
+      path: '/choir'
+      fullPath: '/choir'
+      preLoaderRoute: typeof ChoirRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChoirRoute: ChoirRoute,
   PantheonRoute: PantheonRoute,
   SanctumRoute: SanctumRoute,
 }
