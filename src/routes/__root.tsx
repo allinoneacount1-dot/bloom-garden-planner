@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "NÚMINA — Summon intelligence. Bind it to the chain." },
+      { name: "description", content: "NÚMINA is a protocol for invoking autonomous on-chain AI agents on Solana — bound to your wallet, acting within ritual guardrails." },
+      { name: "author", content: "NÚMINA" },
+      { property: "og:title", content: "NÚMINA — Summon intelligence. Bind it to the chain." },
+      { property: "og:description", content: "Invoke autonomous on-chain AI agents on Solana. Non-custodial, ritualistic, sovereign." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@numina" },
     ],
     links: [
       {
