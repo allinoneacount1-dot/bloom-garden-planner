@@ -5,18 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * NÚMINA — mythic / cosmic / sacred design system.
+ * Dark-only by design. Gold reserved for sacred CTAs. Violet pervasive. Cyan for live data.
  */
+
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -59,86 +52,191 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-void: var(--void);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-line: var(--line);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-aether: var(--aether);
+  --color-aether-soft: var(--aether-soft);
+  --color-plasma: var(--plasma);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-text-hi: var(--text-hi);
+  --color-text-mid: var(--text-mid);
+  --color-text-low: var(--text-low);
+  --font-display: "Cinzel", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --radius: 1.25rem;
+
+  /* Foundation — the Void */
+  --void: oklch(0.08 0.02 285);                /* #050407 absolute bg */
+  --background: oklch(0.11 0.035 280);         /* base canvas */
+  --surface: oklch(0.15 0.04 282);             /* cards */
+  --surface-elevated: oklch(0.18 0.05 283);    /* elevated */
+  --line: oklch(0.28 0.05 285 / 0.55);
+
+  /* Sacred / accent */
+  --gold: oklch(0.83 0.13 85);                 /* #E8C46A */
+  --gold-soft: oklch(0.88 0.11 88);
+  --aether: oklch(0.62 0.22 295);              /* #7B5CFF violet */
+  --aether-soft: oklch(0.74 0.17 295);
+  --plasma: oklch(0.82 0.16 185);              /* #45E0D0 cyan */
+
+  /* Text */
+  --text-hi: oklch(0.94 0.012 285);
+  --text-mid: oklch(0.68 0.025 285);
+  --text-low: oklch(0.45 0.025 285);
+  --foreground: var(--text-hi);
+
+  /* shadcn mapping */
+  --card: var(--surface);
+  --card-foreground: var(--text-hi);
+  --popover: var(--surface-elevated);
+  --popover-foreground: var(--text-hi);
+  --primary: var(--gold);
+  --primary-foreground: oklch(0.15 0.03 285);
+  --secondary: var(--surface-elevated);
+  --secondary-foreground: var(--text-hi);
+  --muted: var(--surface);
+  --muted-foreground: var(--text-mid);
+  --accent: var(--aether);
+  --accent-foreground: var(--text-hi);
+  --destructive: oklch(0.65 0.22 18);
+  --destructive-foreground: var(--text-hi);
+  --danger: oklch(0.65 0.22 18);
+  --warning: oklch(0.78 0.16 65);
+  --border: var(--line);
+  --input: var(--surface-elevated);
+  --ring: var(--aether);
+  --chart-1: var(--aether);
+  --chart-2: var(--plasma);
+  --chart-3: var(--gold);
+  --chart-4: oklch(0.65 0.18 320);
+  --chart-5: oklch(0.7 0.15 30);
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--text-hi);
+  --sidebar-primary: var(--aether);
+  --sidebar-primary-foreground: var(--text-hi);
+  --sidebar-accent: var(--surface-elevated);
+  --sidebar-accent-foreground: var(--text-hi);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--aether);
+
+  /* Glow tokens */
+  --glow-aether: 0 0 40px oklch(0.62 0.22 295 / 0.35);
+  --glow-gold: 0 0 32px oklch(0.83 0.13 85 / 0.4);
+  --glow-plasma: 0 0 28px oklch(0.82 0.16 185 / 0.35);
 }
 
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
-}
+/* App is dark-only; alias .dark to root tokens. */
+.dark { color-scheme: dark; }
 
 @layer base {
+  :root { color-scheme: dark; }
+
   * {
     border-color: var(--color-border);
   }
 
+  html, body {
+    background-color: var(--void);
+    color: var(--text-hi);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background:
+      radial-gradient(1200px 700px at 80% -10%, oklch(0.35 0.18 295 / 0.18), transparent 60%),
+      radial-gradient(900px 600px at -10% 30%, oklch(0.35 0.15 220 / 0.12), transparent 60%),
+      radial-gradient(700px 500px at 50% 110%, oklch(0.4 0.18 85 / 0.08), transparent 60%),
+      var(--void);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: oklch(0.62 0.22 295 / 0.4);
+    color: var(--text-hi);
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); letter-spacing: 0.06em; }
+  .font-mono { font-family: var(--font-mono); }
+  .text-hi { color: var(--text-hi); }
+  .text-mid { color: var(--text-mid); }
+  .text-low { color: var(--text-low); }
+
+  .glow-aether { box-shadow: var(--glow-aether); }
+  .glow-gold { box-shadow: var(--glow-gold); }
+  .glow-plasma { box-shadow: var(--glow-plasma); }
+
+  .text-glow-gold { text-shadow: 0 0 24px oklch(0.83 0.13 85 / 0.45); }
+  .text-glow-aether { text-shadow: 0 0 24px oklch(0.62 0.22 295 / 0.55); }
+
+  .ritual-border {
+    position: relative;
+    background: linear-gradient(var(--surface), var(--surface)) padding-box,
+                linear-gradient(135deg, oklch(0.62 0.22 295 / 0.6), oklch(0.83 0.13 85 / 0.5)) border-box;
+    border: 1px solid transparent;
+  }
+
+  .glyph-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line) 20%, var(--aether) 50%, var(--line) 80%, transparent);
+  }
+
+  /* Starfield (CSS-only twinkling) */
+  .starfield {
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, oklch(0.95 0 0 / 0.9), transparent 50%),
+      radial-gradient(1px 1px at 70% 80%, oklch(0.95 0 0 / 0.7), transparent 50%),
+      radial-gradient(1px 1px at 40% 60%, oklch(0.95 0 0 / 0.8), transparent 50%),
+      radial-gradient(1.5px 1.5px at 85% 20%, oklch(0.95 0 0 / 0.9), transparent 50%),
+      radial-gradient(1px 1px at 10% 80%, oklch(0.95 0 0 / 0.6), transparent 50%),
+      radial-gradient(1px 1px at 55% 15%, oklch(0.95 0 0 / 0.8), transparent 50%),
+      radial-gradient(1.5px 1.5px at 30% 90%, oklch(0.95 0 0 / 0.7), transparent 50%),
+      radial-gradient(1px 1px at 90% 50%, oklch(0.95 0 0 / 0.6), transparent 50%),
+      radial-gradient(1px 1px at 5% 50%, oklch(0.95 0 0 / 0.7), transparent 50%),
+      radial-gradient(1px 1px at 65% 40%, oklch(0.95 0 0 / 0.8), transparent 50%);
+    background-size: 600px 600px;
+    background-repeat: repeat;
+    animation: drift 120s linear infinite;
+    opacity: 0.7;
+  }
+
+  @keyframes drift {
+    from { background-position: 0 0; }
+    to { background-position: 600px 600px; }
+  }
+
+  @keyframes slow-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-slow-spin { animation: slow-spin 120s linear infinite; }
+  .animate-slow-spin-rev { animation: slow-spin 180s linear infinite reverse; }
+
+  @keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 24px oklch(0.62 0.22 295 / 0.5)); }
+    50% { filter: drop-shadow(0 0 48px oklch(0.62 0.22 295 / 0.8)) drop-shadow(0 0 80px oklch(0.83 0.13 85 / 0.3)); }
+  }
+  .animate-pulse-glow { animation: pulse-glow 6s ease-in-out infinite; }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .starfield, .animate-slow-spin, .animate-slow-spin-rev, .animate-pulse-glow {
+      animation: none !important;
+    }
   }
 }
