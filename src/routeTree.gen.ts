@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SanctumRouteImport } from './routes/sanctum'
 import { Route as PantheonRouteImport } from './routes/pantheon'
 import { Route as ChoirRouteImport } from './routes/choir'
+import { Route as AetherRouteImport } from './routes/aether'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SanctumRoute = SanctumRouteImport.update({
@@ -29,6 +30,11 @@ const ChoirRoute = ChoirRouteImport.update({
   path: '/choir',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AetherRoute = AetherRouteImport.update({
+  id: '/aether',
+  path: '/aether',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aether': typeof AetherRoute
   '/choir': typeof ChoirRoute
   '/pantheon': typeof PantheonRoute
   '/sanctum': typeof SanctumRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aether': typeof AetherRoute
   '/choir': typeof ChoirRoute
   '/pantheon': typeof PantheonRoute
   '/sanctum': typeof SanctumRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/aether': typeof AetherRoute
   '/choir': typeof ChoirRoute
   '/pantheon': typeof PantheonRoute
   '/sanctum': typeof SanctumRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/choir' | '/pantheon' | '/sanctum'
+  fullPaths: '/' | '/aether' | '/choir' | '/pantheon' | '/sanctum'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/choir' | '/pantheon' | '/sanctum'
-  id: '__root__' | '/' | '/choir' | '/pantheon' | '/sanctum'
+  to: '/' | '/aether' | '/choir' | '/pantheon' | '/sanctum'
+  id: '__root__' | '/' | '/aether' | '/choir' | '/pantheon' | '/sanctum'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AetherRoute: typeof AetherRoute
   ChoirRoute: typeof ChoirRoute
   PantheonRoute: typeof PantheonRoute
   SanctumRoute: typeof SanctumRoute
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChoirRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aether': {
+      id: '/aether'
+      path: '/aether'
+      fullPath: '/aether'
+      preLoaderRoute: typeof AetherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AetherRoute: AetherRoute,
   ChoirRoute: ChoirRoute,
   PantheonRoute: PantheonRoute,
   SanctumRoute: SanctumRoute,
