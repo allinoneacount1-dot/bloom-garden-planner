@@ -14,7 +14,168 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      actions: {
+        Row: {
+          created_at: string
+          id: number
+          kind: string
+          numen_id: string
+          payload: Json
+          pnl: number | null
+          tx_sig: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          kind: string
+          numen_id: string
+          payload?: Json
+          pnl?: number | null
+          tx_sig?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          kind?: string
+          numen_id?: string
+          payload?: Json
+          pnl?: number | null
+          tx_sig?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actions_numen_id_fkey"
+            columns: ["numen_id"]
+            isOneToOne: false
+            referencedRelation: "numina"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      numina: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          name: string
+          nft_mint: string | null
+          owner_wallet: string
+          program_account: string | null
+          purpose: string
+          sigil_seed: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          name: string
+          nft_mint?: string | null
+          owner_wallet: string
+          program_account?: string | null
+          purpose?: string
+          sigil_seed: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          nft_mint?: string | null
+          owner_wallet?: string
+          program_account?: string | null
+          purpose?: string
+          sigil_seed?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "numina_owner_wallet_fkey"
+            columns: ["owner_wallet"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["wallet"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          handle: string | null
+          id: string
+          updated_at: string
+          wallet: string
+        }
+        Insert: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          updated_at?: string
+          wallet: string
+        }
+        Update: {
+          created_at?: string
+          handle?: string | null
+          id?: string
+          updated_at?: string
+          wallet?: string
+        }
+        Relationships: []
+      }
+      strategies: {
+        Row: {
+          author_wallet: string | null
+          clones: number
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          risk_level: string
+          roi: number | null
+          rules: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_wallet?: string | null
+          clones?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          risk_level?: string
+          roi?: number | null
+          rules?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_wallet?: string | null
+          clones?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          risk_level?: string
+          roi?: number | null
+          rules?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategies_author_wallet_fkey"
+            columns: ["author_wallet"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["wallet"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
