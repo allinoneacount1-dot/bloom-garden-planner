@@ -41,11 +41,10 @@ export function useNuminaWallet() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // useWallet returns the default disconnected adapter state outside the provider
-  // tree on the server; calling it conditionally would break Rules of Hooks.
   const w = useWallet();
 
   const connect = useCallback(async () => {
+    if (!mounted) return;
     try {
       // Prefer Phantom if available; else fall back to first installed adapter.
       const phantom = w.wallets.find((x) => x.adapter.name === "Phantom" && x.readyState !== "Unsupported");
@@ -59,7 +58,21 @@ export function useNuminaWallet() {
     } catch (err) {
       console.error("Wallet connect failed", err);
     }
-  }, [w]);
+  }, [w, mounted]);
+
+  // During SSR / before mount, the WalletContext is absent and reading any
+  // property of `w` throws a "missing provider" error. Return safe defaults.
+  if (!mounted) {
+    return {
+      mounted: false,
+      publicKey: null,
+      connecting: false,
+      connected: false,
+      walletName: null,
+      connect,
+      disconnect: async () => {},
+    };
+  }
 
   return {
     mounted,
