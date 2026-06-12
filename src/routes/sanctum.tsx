@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Header } from "@/components/numina/Header";
 import { Footer } from "@/components/numina/Footer";
 import { Sigil } from "@/components/numina/Sigil";
@@ -14,6 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/sanctum")({
   head: () => ({
@@ -32,10 +43,27 @@ function Sanctum() {
   const pnl = MOCK_NUMINA.reduce((s, n) => s + n.pnl, 0);
   const [entries, setEntries] = useState<LogEntry[]>(() => getActivityLog());
   const [selected, setSelected] = useState<MockNumen | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
   useEffect(() => {
-    setEntries(getActivityLog());
-    startAmbientStream();
-    return subscribeActivity(setEntries);
+    try {
+      setEntries(getActivityLog());
+      startAmbientStream();
+      setHydrated(true);
+      return subscribeActivity((next) => {
+        try {
+          setEntries(next);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Unknown error";
+          setStreamError(msg);
+        }
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setStreamError(msg);
+      toast.error("LogStream offline", { description: msg });
+    }
   }, []);
 
   return (
@@ -98,13 +126,44 @@ function Sanctum() {
             </div>
 
             <aside className="lg:sticky lg:top-24 self-start">
-              <LogStream entries={entries} />
+              <LogStream
+                entries={entries}
+                hydrated={hydrated}
+                error={streamError}
+                onReset={() => setConfirmReset(true)}
+              />
             </aside>
           </div>
         </section>
       </main>
       <Footer />
       <NumenDialog numen={selected} onClose={() => setSelected(null)} entries={entries} />
+      <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
+        <AlertDialogContent className="border-line bg-surface/95 backdrop-blur-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-hi">Silence the LogStream?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This clears every whisper from the altar. The Numina will not lose memory — only the visible record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                try {
+                  clearActivityLog();
+                  toast.success("LogStream silenced");
+                } catch (err) {
+                  const msg = err instanceof Error ? err.message : "Unknown error";
+                  toast.error("Could not silence", { description: msg });
+                }
+              }}
+            >
+              Silence
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -178,22 +237,42 @@ function MiniStat({ label, value, tone }: { label: string; value: string; tone: 
   );
 }
 
-function LogStream({ entries }: { entries: LogEntry[] }) {
+function LogStream({
+  entries,
+  hydrated,
+  error,
+  onReset,
+}: {
+  entries: LogEntry[];
+  hydrated: boolean;
+  error: string | null;
+  onReset: () => void;
+}) {
   return (
     <div className="rounded-2xl border border-line bg-surface/40 p-5 backdrop-blur">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <div className="font-display text-[10px] uppercase tracking-[0.4em] text-gold">LogStream</div>
-          <div className="mt-1 text-xs text-mid">Realtime · all bound Numina</div>
+          <div className="mt-1 text-xs text-mid">
+            {error ? <span className="text-danger">stream offline</span> : "Realtime · all bound Numina"}
+          </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-plasma">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-plasma" />
-            live
+          <span
+            className={`inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest ${
+              error ? "text-danger" : hydrated ? "text-plasma" : "text-mid"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                error ? "bg-danger" : hydrated ? "bg-plasma animate-pulse" : "bg-mid animate-pulse"
+              }`}
+            />
+            {error ? "offline" : hydrated ? "live" : "binding…"}
           </span>
           <button
             type="button"
-            onClick={() => clearActivityLog()}
+            onClick={onReset}
             className="font-mono text-[10px] uppercase tracking-widest text-low hover:text-hi"
             aria-label="Reset log"
             title="Reset log"
@@ -202,6 +281,16 @@ function LogStream({ entries }: { entries: LogEntry[] }) {
           </button>
         </div>
       </div>
+      {!hydrated && !error ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="border-l border-line/60 pl-3">
+              <div className="h-2 w-24 animate-pulse rounded bg-line/60" />
+              <div className="mt-2 h-3 w-full animate-pulse rounded bg-line/40" />
+            </div>
+          ))}
+        </div>
+      ) : (
       <ol className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
         {entries.map((e) => {
           const tone =
@@ -220,6 +309,7 @@ function LogStream({ entries }: { entries: LogEntry[] }) {
           );
         })}
       </ol>
+      )}
     </div>
   );
 }
@@ -234,6 +324,8 @@ function NumenDialog({
   entries: LogEntry[];
 }) {
   const open = numen !== null;
+  const [busy, setBusy] = useState<null | "toggle" | "sever">(null);
+  const [confirmSever, setConfirmSever] = useState(false);
   const related = useMemo(
     () => (numen ? entries.filter((e) => e.numen === numen.name).slice(0, 8) : []),
     [entries, numen],
@@ -247,6 +339,45 @@ function NumenDialog({
   }
   const statusTone =
     numen.status === "awake" ? "text-plasma" : numen.status === "silence" ? "text-mid" : "text-danger";
+  const toggleLabel = numen.status === "awake" ? "Enter Silence" : "Awaken";
+  const handleToggle = async () => {
+    setBusy("toggle");
+    try {
+      await new Promise((r) => setTimeout(r, 350));
+      pushActivity({
+        numen: numen.name,
+        kind: numen.status === "awake" ? "decision" : "alert",
+        text:
+          numen.status === "awake"
+            ? "Entered Silence — paused by overseer"
+            : "Awoken — overseer resumed the rite",
+      });
+      toast.success(
+        numen.status === "awake" ? `${numen.name} entered Silence` : `${numen.name} awoken`,
+      );
+      onClose();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error("Rite failed", { description: msg });
+    } finally {
+      setBusy(null);
+    }
+  };
+  const handleSever = async () => {
+    setBusy("sever");
+    try {
+      await new Promise((r) => setTimeout(r, 450));
+      pushActivity({ numen: numen.name, kind: "error", text: "Binding severed — funds returned" });
+      toast.success(`${numen.name} severed`, { description: "Funds returned to your wallet." });
+      onClose();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error("Sever failed", { description: msg });
+    } finally {
+      setBusy(null);
+      setConfirmSever(false);
+    }
+  };
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg border-line bg-surface/95 backdrop-blur-xl">
@@ -284,30 +415,45 @@ function NumenDialog({
         <DialogFooter className="gap-2 sm:gap-2">
           <button
             type="button"
-            onClick={() => {
-              pushActivity({
-                numen: numen.name,
-                kind: numen.status === "awake" ? "decision" : "alert",
-                text: numen.status === "awake" ? "Entered Silence — paused by overseer" : "Awoken — overseer resumed the rite",
-              });
-              onClose();
-            }}
-            className="rounded-full border border-aether/50 bg-aether/10 px-4 py-2 text-[11px] uppercase tracking-widest text-aether hover:bg-aether/20"
+            onClick={handleToggle}
+            disabled={busy !== null}
+            className="rounded-full border border-aether/50 bg-aether/10 px-4 py-2 text-[11px] uppercase tracking-widest text-aether hover:bg-aether/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {numen.status === "awake" ? "Enter Silence" : "Awaken"}
+            {busy === "toggle" ? "Working…" : toggleLabel}
           </button>
           <button
             type="button"
-            onClick={() => {
-              pushActivity({ numen: numen.name, kind: "error", text: "Binding severed — funds returned" });
-              onClose();
-            }}
-            className="rounded-full border border-danger/50 bg-danger/5 px-4 py-2 text-[11px] uppercase tracking-widest text-danger hover:bg-danger/15"
+            onClick={() => setConfirmSever(true)}
+            disabled={busy !== null}
+            className="rounded-full border border-danger/50 bg-danger/5 px-4 py-2 text-[11px] uppercase tracking-widest text-danger hover:bg-danger/15 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sever
+            {busy === "sever" ? "Severing…" : "Sever"}
           </button>
         </DialogFooter>
       </DialogContent>
+      <AlertDialog open={confirmSever} onOpenChange={(o) => !busy && setConfirmSever(o)}>
+        <AlertDialogContent className="border-line bg-surface/95 backdrop-blur-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-hi">Sever {numen.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The binding is broken irrevocably. Funds return to your wallet; the Numen falls silent.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy === "sever"}>Stay bound</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleSever();
+              }}
+              disabled={busy === "sever"}
+              className="bg-danger text-background hover:bg-danger/90"
+            >
+              {busy === "sever" ? "Severing…" : "Sever"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useCallback, type ReactNode } from "react";
+import { toast } from "sonner";
 import {
   ConnectionProvider,
   WalletProvider as SolanaWalletProvider,
@@ -50,13 +51,21 @@ export function useNuminaWallet() {
       const phantom = w.wallets.find((x) => x.adapter.name === "Phantom" && x.readyState !== "Unsupported");
       const target = phantom ?? w.wallets.find((x) => x.readyState !== "Unsupported");
       if (!target) {
+        toast.error("No wallet detected", {
+          description: "Install Phantom to bind a vessel.",
+        });
         window.open("https://phantom.app/", "_blank", "noopener,noreferrer");
         return;
       }
       w.select(target.adapter.name);
       await w.connect();
+      toast.success("Vessel bound", {
+        description: `Connected via ${target.adapter.name}.`,
+      });
     } catch (err) {
       console.error("Wallet connect failed", err);
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error("The gate refused", { description: msg });
     }
   }, [w, mounted]);
 
@@ -81,7 +90,15 @@ export function useNuminaWallet() {
     connected: w.connected,
     walletName: w.wallet?.adapter.name ?? null,
     connect,
-    disconnect: w.disconnect,
+    disconnect: async () => {
+      try {
+        await w.disconnect();
+        toast("Binding severed");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        toast.error("Could not sever", { description: msg });
+      }
+    },
   };
 }
 
