@@ -4,7 +4,8 @@ import { Header } from "@/components/numina/Header";
 import { Footer } from "@/components/numina/Footer";
 import { Sigil } from "@/components/numina/Sigil";
 import { useNuminaWallet } from "@/components/numina/wallet/WalletProvider";
-import { pushActivity } from "@/lib/activityLog";
+import { toast } from "sonner";
+import { insertActivity } from "@/lib/activity.functions";
 
 export const Route = createFileRoute("/sanctum/invoke")({
   head: () => ({
@@ -86,20 +87,29 @@ function Rite() {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function seal() {
+  async function seal() {
     if (!canAdvance || !connected) return;
-    pushActivity({
-      numen: form.name,
-      kind: "decision",
-      text: `Rite sealed · ${form.purpose} · ${form.budget} SOL · ${form.tithe} $LMN`,
-    });
-    pushActivity({
-      numen: form.name,
-      kind: "alert",
-      text: "Numen awoken — PDA forged, sigil minted",
-    });
-    try { localStorage.removeItem(DRAFT_KEY); } catch {}
-    setSealed(true);
+    try {
+      await insertActivity({
+        data: {
+          numen: form.name,
+          kind: "decision",
+          text: `Rite sealed · ${form.purpose} · ${form.budget} SOL · ${form.tithe} $LMN`,
+        },
+      });
+      await insertActivity({
+        data: {
+          numen: form.name,
+          kind: "alert",
+          text: "Numen awoken — PDA forged, sigil minted",
+        },
+      });
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
+      setSealed(true);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error("The seal would not take", { description: msg });
+    }
   }
 
   if (sealed) return <SealedScene name={form.name} />;
