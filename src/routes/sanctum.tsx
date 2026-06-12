@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/numina/Header";
 import { Footer } from "@/components/numina/Footer";
 import { Sigil } from "@/components/numina/Sigil";
 import { useNuminaWallet, shortAddress } from "@/components/numina/wallet/WalletProvider";
-import { MOCK_NUMINA, type MockNumen, type LogEntry } from "@/components/numina/sanctum/mock";
-import { getActivityLog, subscribeActivity, startAmbientStream, pushActivity, clearActivityLog } from "@/lib/activityLog";
+import { MOCK_NUMINA, type MockNumen } from "@/components/numina/sanctum/mock";
+import { useActivityStream, relativeTime, type ActivityRow, type StreamStatus } from "@/lib/useActivityStream";
 import {
   Dialog,
   DialogContent,
@@ -41,30 +41,10 @@ function Sanctum() {
   const total = MOCK_NUMINA.length;
   const awake = MOCK_NUMINA.filter((n) => n.status === "awake").length;
   const pnl = MOCK_NUMINA.reduce((s, n) => s + n.pnl, 0);
-  const [entries, setEntries] = useState<LogEntry[]>(() => getActivityLog());
+  const { entries, status, error, push, clear } = useActivityStream();
   const [selected, setSelected] = useState<MockNumen | null>(null);
-  const [hydrated, setHydrated] = useState(false);
-  const [streamError, setStreamError] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
-  useEffect(() => {
-    try {
-      setEntries(getActivityLog());
-      startAmbientStream();
-      setHydrated(true);
-      return subscribeActivity((next) => {
-        try {
-          setEntries(next);
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "Unknown error";
-          setStreamError(msg);
-        }
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      setStreamError(msg);
-      toast.error("LogStream offline", { description: msg });
-    }
-  }, []);
+  const [clearing, setClearing] = useState(false);
 
   return (
     <div className="min-h-screen">
@@ -128,8 +108,8 @@ function Sanctum() {
             <aside className="lg:sticky lg:top-24 self-start">
               <LogStream
                 entries={entries}
-                hydrated={hydrated}
-                error={streamError}
+                status={status}
+                error={error}
                 onReset={() => setConfirmReset(true)}
               />
             </aside>
@@ -137,7 +117,7 @@ function Sanctum() {
         </section>
       </main>
       <Footer />
-      <NumenDialog numen={selected} onClose={() => setSelected(null)} entries={entries} />
+      <NumenDialog numen={selected} onClose={() => setSelected(null)} entries={entries} push={push} />
       <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
         <AlertDialogContent className="border-line bg-surface/95 backdrop-blur-xl">
           <AlertDialogHeader>
@@ -147,19 +127,25 @@ function Sanctum() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={clearing}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
+              disabled={clearing}
+              onClick={async (e) => {
+                e.preventDefault();
+                setClearing(true);
                 try {
-                  clearActivityLog();
+                  await clear();
                   toast.success("LogStream silenced");
+                  setConfirmReset(false);
                 } catch (err) {
                   const msg = err instanceof Error ? err.message : "Unknown error";
                   toast.error("Could not silence", { description: msg });
+                } finally {
+                  setClearing(false);
                 }
               }}
             >
-              Silence
+              {clearing ? "Silencing…" : "Silence"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -239,36 +225,46 @@ function MiniStat({ label, value, tone }: { label: string; value: string; tone: 
 
 function LogStream({
   entries,
-  hydrated,
+  status,
   error,
   onReset,
 }: {
-  entries: LogEntry[];
-  hydrated: boolean;
+  entries: ActivityRow[];
+  status: StreamStatus;
   error: string | null;
   onReset: () => void;
 }) {
+  const loading = status === "loading";
+  const live = status === "live";
+  const offline = status === "error" || !!error;
+  const reconnecting = status === "reconnecting";
   return (
     <div className="rounded-2xl border border-line bg-surface/40 p-5 backdrop-blur">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <div className="font-display text-[10px] uppercase tracking-[0.4em] text-gold">LogStream</div>
           <div className="mt-1 text-xs text-mid">
-            {error ? <span className="text-danger">stream offline</span> : "Realtime · all bound Numina"}
+            {offline ? (
+              <span className="text-danger">{error ?? "stream offline"}</span>
+            ) : reconnecting ? (
+              <span className="text-warning">reconnecting…</span>
+            ) : (
+              "Realtime · all bound Numina"
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
           <span
             className={`inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest ${
-              error ? "text-danger" : hydrated ? "text-plasma" : "text-mid"
+              offline ? "text-danger" : live ? "text-plasma" : "text-mid"
             }`}
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                error ? "bg-danger" : hydrated ? "bg-plasma animate-pulse" : "bg-mid animate-pulse"
+                offline ? "bg-danger" : live ? "bg-plasma animate-pulse" : "bg-mid animate-pulse"
               }`}
             />
-            {error ? "offline" : hydrated ? "live" : "binding…"}
+            {offline ? "offline" : live ? "live" : reconnecting ? "retry…" : "binding…"}
           </span>
           <button
             type="button"
@@ -281,7 +277,7 @@ function LogStream({
           </button>
         </div>
       </div>
-      {!hydrated && !error ? (
+      {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="border-l border-line/60 pl-3">
@@ -290,6 +286,10 @@ function LogStream({
             </div>
           ))}
         </div>
+      ) : entries.length === 0 ? (
+        <p className="py-6 text-center text-xs italic text-mid">
+          {offline ? "The stream is broken. Try refreshing." : "The altar is silent. No whispers yet."}
+        </p>
       ) : (
       <ol className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
         {entries.map((e) => {
@@ -301,7 +301,7 @@ function LogStream({
             <li key={e.id} className="border-l border-line/60 pl-3">
               <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest">
                 <span className={tone}>● {e.kind}</span>
-                <span className="text-low">{e.at}</span>
+                <span className="text-low">{relativeTime(e.created_at)}</span>
               </div>
               <div className="mt-1 text-xs text-hi">{e.text}</div>
               <div className="mt-0.5 text-[10px] text-low">{e.numen}</div>
@@ -318,10 +318,12 @@ function NumenDialog({
   numen,
   onClose,
   entries,
+  push,
 }: {
   numen: MockNumen | null;
   onClose: () => void;
-  entries: LogEntry[];
+  entries: ActivityRow[];
+  push: (entry: { numen: string; kind: ActivityRow["kind"]; text: string }) => Promise<void>;
 }) {
   const open = numen !== null;
   const [busy, setBusy] = useState<null | "toggle" | "sever">(null);
@@ -343,8 +345,7 @@ function NumenDialog({
   const handleToggle = async () => {
     setBusy("toggle");
     try {
-      await new Promise((r) => setTimeout(r, 350));
-      pushActivity({
+      await push({
         numen: numen.name,
         kind: numen.status === "awake" ? "decision" : "alert",
         text:
@@ -366,8 +367,7 @@ function NumenDialog({
   const handleSever = async () => {
     setBusy("sever");
     try {
-      await new Promise((r) => setTimeout(r, 450));
-      pushActivity({ numen: numen.name, kind: "error", text: "Binding severed — funds returned" });
+      await push({ numen: numen.name, kind: "error", text: "Binding severed — funds returned" });
       toast.success(`${numen.name} severed`, { description: "Funds returned to your wallet." });
       onClose();
     } catch (err) {
@@ -405,7 +405,7 @@ function NumenDialog({
             <ol className="mt-3 space-y-2 max-h-48 overflow-y-auto pr-1">
               {related.map((e) => (
                 <li key={e.id} className="border-l border-line/60 pl-3 text-xs text-hi">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-low">{e.kind} · {e.at}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-low">{e.kind} · {relativeTime(e.created_at)}</span>
                   <div>{e.text}</div>
                 </li>
               ))}
