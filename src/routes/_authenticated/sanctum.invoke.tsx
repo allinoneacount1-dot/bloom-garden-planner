@@ -6,6 +6,7 @@ import { Sigil } from "@/components/numina/Sigil";
 import { useNuminaWallet } from "@/components/numina/wallet/WalletProvider";
 import { toast } from "sonner";
 import { insertActivity } from "@/lib/activity.functions";
+import { createNumen } from "@/lib/numina.functions";
 
 export const Route = createFileRoute("/_authenticated/sanctum/invoke")({
   head: () => ({
@@ -57,11 +58,12 @@ const STEP_GUIDANCE: Record<number, string> = {
 };
 
 function Rite() {
-  const { connected, connect } = useNuminaWallet();
+  const { connected, connect, publicKey } = useNuminaWallet();
   const [step, setStep] = useState(0);
   const [sealed, setSealed] = useState(false);
   const [form, setForm] = useState<Form>(DEFAULT_FORM);
   const [hydrated, setHydrated] = useState(false);
+  const [sealing, setSealing] = useState(false);
 
   useEffect(() => {
     try {
@@ -88,8 +90,23 @@ function Rite() {
   }
 
   async function seal() {
-    if (!canAdvance || !connected) return;
+    if (!canAdvance || !connected || sealing) return;
+    setSealing(true);
     try {
+      // 1) Persist the Numen itself (RLS scopes to current user)
+      await createNumen({
+        data: {
+          name: form.name,
+          purpose: form.purpose as "trading" | "monitor" | "task",
+          strategy: form.strategy,
+          budget: form.budget,
+          maxPerTx: form.maxPerTx,
+          riskLevel: form.riskLevel,
+          tithe: form.tithe,
+          ownerWallet: publicKey,
+        },
+      });
+      // 2) Record activity entries for the LogStream
       await insertActivity({
         data: {
           numen: form.name,
@@ -109,6 +126,8 @@ function Rite() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       toast.error("The seal would not take", { description: msg });
+    } finally {
+      setSealing(false);
     }
   }
 
@@ -271,10 +290,10 @@ function Rite() {
                 ) : (
                   <button
                     onClick={seal}
-                    disabled={!canAdvance || !connected}
+                    disabled={!canAdvance || !connected || sealing}
                     className="rounded-full border border-gold/60 bg-gradient-to-b from-gold/20 to-gold/5 px-6 py-2.5 text-xs uppercase tracking-widest text-gold hover:shadow-[var(--glow-gold)] disabled:opacity-40"
                   >
-                    Seal the binding
+                    {sealing ? "Sealing…" : "Seal the binding"}
                   </button>
                 )}
               </div>
