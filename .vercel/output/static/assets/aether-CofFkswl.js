@@ -1,1 +1,0 @@
-import{o as e}from"./useStore-_XON228V.js";import{t}from"./Stub-dRVng01m.js";var n=e(),r=()=>(0,n.jsx)(t,{eyebrow:`The Aether`,title:`The pool of energy.`,body:`Stake $LMN to grant your Numina the energy they need to act. View treasury composition, energy flows, and the slow tides of the protocol's reserve.`,seed:`aether-pool`});export{r as component};
