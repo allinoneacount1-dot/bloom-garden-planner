@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/useAuth";
 import { Header } from "@/components/numina/Header";
 import { Footer } from "@/components/numina/Footer";
@@ -82,8 +81,11 @@ function AuthPage() {
   async function withGoogle() {
     setBusy("google");
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/sanctum",
+      const result = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + "/sanctum",
+        },
       });
       if (result.error) throw result.error instanceof Error ? result.error : new Error(String(result.error));
       // result.redirected → browser redirects, nothing to do.
