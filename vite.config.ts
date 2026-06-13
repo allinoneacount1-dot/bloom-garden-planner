@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // @ts-ignore - nitro preset override for Vercel
+  nitro: {
+    preset: "vercel",
+  },
 });
