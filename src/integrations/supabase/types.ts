@@ -59,6 +59,7 @@ export type Database = {
           kind: string
           numen: string
           text: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -66,6 +67,7 @@ export type Database = {
           kind: string
           numen: string
           text: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -73,6 +75,7 @@ export type Database = {
           kind?: string
           numen?: string
           text?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -83,7 +86,8 @@ export type Database = {
           id: string
           name: string
           nft_mint: string | null
-          owner_wallet: string
+          owner_id: string | null
+          owner_wallet: string | null
           program_account: string | null
           purpose: string
           sigil_seed: string
@@ -96,7 +100,8 @@ export type Database = {
           id?: string
           name: string
           nft_mint?: string | null
-          owner_wallet: string
+          owner_id?: string | null
+          owner_wallet?: string | null
           program_account?: string | null
           purpose?: string
           sigil_seed: string
@@ -109,7 +114,8 @@ export type Database = {
           id?: string
           name?: string
           nft_mint?: string | null
-          owner_wallet?: string
+          owner_id?: string | null
+          owner_wallet?: string | null
           program_account?: string | null
           purpose?: string
           sigil_seed?: string
@@ -129,29 +135,33 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          email: string | null
           handle: string | null
           id: string
           updated_at: string
-          wallet: string
+          wallet: string | null
         }
         Insert: {
           created_at?: string
+          email?: string | null
           handle?: string | null
           id?: string
           updated_at?: string
-          wallet: string
+          wallet?: string | null
         }
         Update: {
           created_at?: string
+          email?: string | null
           handle?: string | null
           id?: string
           updated_at?: string
-          wallet?: string
+          wallet?: string | null
         }
         Relationships: []
       }
       strategies: {
         Row: {
+          author_id: string | null
           author_wallet: string | null
           clones: number
           created_at: string
@@ -165,6 +175,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          author_id?: string | null
           author_wallet?: string | null
           clones?: number
           created_at?: string
@@ -178,6 +189,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          author_id?: string | null
           author_wallet?: string | null
           clones?: number
           created_at?: string
@@ -200,15 +212,42 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -335,6 +374,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
