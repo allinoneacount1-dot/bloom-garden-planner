@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/sanctum")({
+export const Route = createFileRoute("/_authenticated/sanctum")({
   head: () => ({
     meta: [
       { title: "The Sanctum — NÚMINA" },

@@ -7,7 +7,7 @@ import { useNuminaWallet } from "@/components/numina/wallet/WalletProvider";
 import { toast } from "sonner";
 import { insertActivity } from "@/lib/activity.functions";
 
-export const Route = createFileRoute("/sanctum/invoke")({
+export const Route = createFileRoute("/_authenticated/sanctum/invoke")({
   head: () => ({
     meta: [
       { title: "The Rite — NÚMINA" },
