@@ -9,19 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SanctumRouteImport } from './routes/sanctum'
 import { Route as PantheonRouteImport } from './routes/pantheon'
 import { Route as LoreRouteImport } from './routes/lore'
 import { Route as ChoirRouteImport } from './routes/choir'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AetherRouteImport } from './routes/aether'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SanctumInvokeRouteImport } from './routes/sanctum.invoke'
+import { Route as AuthenticatedSanctumRouteImport } from './routes/_authenticated/sanctum'
+import { Route as AuthenticatedSanctumInvokeRouteImport } from './routes/_authenticated/sanctum.invoke'
 
-const SanctumRoute = SanctumRouteImport.update({
-  id: '/sanctum',
-  path: '/sanctum',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PantheonRoute = PantheonRouteImport.update({
   id: '/pantheon',
   path: '/pantheon',
@@ -37,9 +34,18 @@ const ChoirRoute = ChoirRouteImport.update({
   path: '/choir',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AetherRoute = AetherRouteImport.update({
   id: '/aether',
   path: '/aether',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -47,45 +53,56 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SanctumInvokeRoute = SanctumInvokeRouteImport.update({
-  id: '/invoke',
-  path: '/invoke',
-  getParentRoute: () => SanctumRoute,
+const AuthenticatedSanctumRoute = AuthenticatedSanctumRouteImport.update({
+  id: '/sanctum',
+  path: '/sanctum',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSanctumInvokeRoute =
+  AuthenticatedSanctumInvokeRouteImport.update({
+    id: '/invoke',
+    path: '/invoke',
+    getParentRoute: () => AuthenticatedSanctumRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aether': typeof AetherRoute
+  '/auth': typeof AuthRoute
   '/choir': typeof ChoirRoute
   '/lore': typeof LoreRoute
   '/pantheon': typeof PantheonRoute
-  '/sanctum': typeof SanctumRouteWithChildren
-  '/sanctum/invoke': typeof SanctumInvokeRoute
+  '/sanctum': typeof AuthenticatedSanctumRouteWithChildren
+  '/sanctum/invoke': typeof AuthenticatedSanctumInvokeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aether': typeof AetherRoute
+  '/auth': typeof AuthRoute
   '/choir': typeof ChoirRoute
   '/lore': typeof LoreRoute
   '/pantheon': typeof PantheonRoute
-  '/sanctum': typeof SanctumRouteWithChildren
-  '/sanctum/invoke': typeof SanctumInvokeRoute
+  '/sanctum': typeof AuthenticatedSanctumRouteWithChildren
+  '/sanctum/invoke': typeof AuthenticatedSanctumInvokeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/aether': typeof AetherRoute
+  '/auth': typeof AuthRoute
   '/choir': typeof ChoirRoute
   '/lore': typeof LoreRoute
   '/pantheon': typeof PantheonRoute
-  '/sanctum': typeof SanctumRouteWithChildren
-  '/sanctum/invoke': typeof SanctumInvokeRoute
+  '/_authenticated/sanctum': typeof AuthenticatedSanctumRouteWithChildren
+  '/_authenticated/sanctum/invoke': typeof AuthenticatedSanctumInvokeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/aether'
+    | '/auth'
     | '/choir'
     | '/lore'
     | '/pantheon'
@@ -95,6 +112,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/aether'
+    | '/auth'
     | '/choir'
     | '/lore'
     | '/pantheon'
@@ -103,32 +121,28 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/aether'
+    | '/auth'
     | '/choir'
     | '/lore'
     | '/pantheon'
-    | '/sanctum'
-    | '/sanctum/invoke'
+    | '/_authenticated/sanctum'
+    | '/_authenticated/sanctum/invoke'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AetherRoute: typeof AetherRoute
+  AuthRoute: typeof AuthRoute
   ChoirRoute: typeof ChoirRoute
   LoreRoute: typeof LoreRoute
   PantheonRoute: typeof PantheonRoute
-  SanctumRoute: typeof SanctumRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sanctum': {
-      id: '/sanctum'
-      path: '/sanctum'
-      fullPath: '/sanctum'
-      preLoaderRoute: typeof SanctumRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pantheon': {
       id: '/pantheon'
       path: '/pantheon'
@@ -150,11 +164,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChoirRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/aether': {
       id: '/aether'
       path: '/aether'
       fullPath: '/aether'
       preLoaderRoute: typeof AetherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -164,35 +192,64 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sanctum/invoke': {
-      id: '/sanctum/invoke'
+    '/_authenticated/sanctum': {
+      id: '/_authenticated/sanctum'
+      path: '/sanctum'
+      fullPath: '/sanctum'
+      preLoaderRoute: typeof AuthenticatedSanctumRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sanctum/invoke': {
+      id: '/_authenticated/sanctum/invoke'
       path: '/invoke'
       fullPath: '/sanctum/invoke'
-      preLoaderRoute: typeof SanctumInvokeRouteImport
-      parentRoute: typeof SanctumRoute
+      preLoaderRoute: typeof AuthenticatedSanctumInvokeRouteImport
+      parentRoute: typeof AuthenticatedSanctumRoute
     }
   }
 }
 
-interface SanctumRouteChildren {
-  SanctumInvokeRoute: typeof SanctumInvokeRoute
+interface AuthenticatedSanctumRouteChildren {
+  AuthenticatedSanctumInvokeRoute: typeof AuthenticatedSanctumInvokeRoute
 }
 
-const SanctumRouteChildren: SanctumRouteChildren = {
-  SanctumInvokeRoute: SanctumInvokeRoute,
+const AuthenticatedSanctumRouteChildren: AuthenticatedSanctumRouteChildren = {
+  AuthenticatedSanctumInvokeRoute: AuthenticatedSanctumInvokeRoute,
 }
 
-const SanctumRouteWithChildren =
-  SanctumRoute._addFileChildren(SanctumRouteChildren)
+const AuthenticatedSanctumRouteWithChildren =
+  AuthenticatedSanctumRoute._addFileChildren(AuthenticatedSanctumRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedSanctumRoute: typeof AuthenticatedSanctumRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedSanctumRoute: AuthenticatedSanctumRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AetherRoute: AetherRoute,
+  AuthRoute: AuthRoute,
   ChoirRoute: ChoirRoute,
   LoreRoute: LoreRoute,
   PantheonRoute: PantheonRoute,
-  SanctumRoute: SanctumRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

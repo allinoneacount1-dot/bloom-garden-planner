@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { WalletButton } from "./wallet/WalletButton";
+import { useAuth } from "@/lib/useAuth";
+import { toast } from "sonner";
 
 const nav = [
   { to: "/sanctum", label: "Sanctum" },
@@ -10,6 +12,16 @@ const nav = [
 ] as const;
 
 export function Header() {
+  const { user, loading, signOut } = useAuth();
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast("Sigil withdrawn");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error("Could not sign out", { description: msg });
+    }
+  };
   return (
     <header className="sticky top-0 z-40 border-b border-line/60 backdrop-blur-xl bg-[color:var(--void)]/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -40,7 +52,27 @@ export function Header() {
           ))}
         </nav>
 
-        <WalletButton />
+        <div className="flex items-center gap-3">
+          <WalletButton />
+          {!loading && (
+            user ? (
+              <button
+                onClick={handleSignOut}
+                className="hidden sm:inline-flex rounded-full border border-line bg-surface/50 px-3 py-1.5 text-[10px] uppercase tracking-widest text-mid hover:text-hi"
+                title={user.email ?? ""}
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                className="rounded-full border border-gold/60 bg-gold/10 px-3 py-1.5 text-[10px] uppercase tracking-widest text-gold hover:shadow-[var(--glow-gold)]"
+              >
+                Sign in
+              </Link>
+            )
+          )}
+        </div>
       </div>
     </header>
   );

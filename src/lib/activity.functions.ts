@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const insertSchema = z.object({
   numen: z.string().min(1).max(120),
@@ -8,25 +9,30 @@ const insertSchema = z.object({
 });
 
 /**
- * Public insert — wallet-as-identity model (no auth yet). Validates payload.
- * Realtime subscribers receive the row instantly via the supabase_realtime publication.
+ * Authenticated insert — RLS requires user_id = auth.uid(). Activity rows are
+ * publicly readable, but only signed-in users can append (and only as themselves).
  */
 export const insertActivity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => insertSchema.parse(input))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row, error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
       .from("activity")
-      .insert(data)
+      .insert({ ...data, user_id: context.userId })
       .select("id, numen, kind, text, created_at")
       .single();
     if (error) throw new Error(error.message);
     return row;
   });
 
-export const clearActivity = createServerFn({ method: "POST" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { error } = await supabaseAdmin.from("activity").delete().gt("id", 0);
-  if (error) throw new Error(error.message);
-  return { ok: true };
-});
+/** Clear only the current user's activity rows. */
+export const clearActivity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { error } = await context.supabase
+      .from("activity")
+      .delete()
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
